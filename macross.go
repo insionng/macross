@@ -452,8 +452,7 @@ func MethodNotAllowedHandler(c *Context) error {
 	if string(c.Method()) != "OPTIONS" {
 		c.Response.SetStatusCode(StatusMethodNotAllowed)
 	}
-	c.Abort()
-	return nil
+	return c.Abort()
 }
 
 func GetAddress(args ...interface{}) string {
@@ -497,6 +496,6 @@ func GetAddress(args ...interface{}) string {
 	}
 
 	addr := host + ":" + strconv.FormatInt(int64(port), 10)
-
 	return addr
+
 }
