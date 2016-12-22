@@ -106,7 +106,7 @@ func (w *netHTTPResponseWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// WrapHandler wraps `fasthttp.RequestHandler` into `macross.HandlerFunc`.
+// WrapHandler wraps `fasthttp.RequestHandler` into `macross.Handler`.
 func WrapFastHandler(h fasthttp.RequestHandler) Handler {
 	return func(c *Context) error {
 		ctx := c.RequestCtx
