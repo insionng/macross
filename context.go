@@ -23,8 +23,8 @@ type (
 
 	// Context represents the contextual data and environment while processing an incoming HTTP request.
 	Context struct {
-		Ktx ktx.Context // standard context
 		*fasthttp.RequestCtx
+		ktx       ktx.Context   // standard context
 		Serialize SerializeFunc // the function serializing the given data of arbitrary type into a byte array.
 		macross   *Macross
 		pnames    []string               // list of route parameter names
@@ -41,8 +41,8 @@ const (
 
 // Reset sets the request and response of the context and resets all other properties.
 func (c *Context) Reset(ctx *fasthttp.RequestCtx) {
-	c.Ktx = ktx.Background()
 	c.RequestCtx = ctx
+	c.ktx = ktx.Background()
 	c.data = nil
 	c.index = -1
 	c.Serialize = Serialize
@@ -54,11 +54,11 @@ func (c *Context) Macross() *Macross {
 }
 
 func (c *Context) Kontext() ktx.Context {
-	return c.Ktx
+	return c.ktx
 }
 
 func (c *Context) SetKontext(ktx ktx.Context) {
-	c.Ktx = ktx
+	c.ktx = ktx
 }
 
 func (c *Context) Handler() Handler {

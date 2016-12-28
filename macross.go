@@ -292,7 +292,7 @@ func New() *Macross {
 	m.SetBinder(&binder{})
 	m.pool.New = func() interface{} {
 		return &Context{
-			Ktx:     ktx.Background(),
+			ktx:     ktx.Background(),
 			pvalues: make([]string, m.maxParams),
 			macross: m,
 		}
