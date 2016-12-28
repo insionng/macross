@@ -68,3 +68,68 @@ func (a *Args) ToSnakeCase(str ...string) string {
 	}
 	return com.ToSnakeCase(s)
 }
+
+// Param returns the named parameter value that is found in the URL path matching the current route.
+// If the named parameter cannot be found, an empty string will be returned.
+func (c *Context) Param(name string) *Args {
+	var a = new(Args)
+	for i, n := range c.pnames {
+		if n == name {
+			a.s = c.pvalues[i]
+		}
+	}
+	return a
+}
+
+func (c *Context) Form(key ...string) *Args {
+	var a = new(Args)
+	var k string
+	if len(key) > 0 {
+		k = key[0]
+		a.s = c.FormValue(k)
+	}
+	return a
+}
+
+//Args 先从URL获取参数，如若没有则再尝试从from获取参数
+func (c *Context) Args(key ...string) *Args {
+	var a = new(Args)
+	var k string
+	if len(key) > 0 {
+		k = key[0]
+		if a.s = c.QueryParam(k); len(a.s) == 0 {
+			a.s = c.FormValue(k)
+		}
+	}
+	return a
+}
+
+func (c *Context) Parameter(i int) (value string) {
+	l := len(c.pnames)
+	if i < l {
+		value = c.pvalues[i]
+	}
+	return
+}
+
+// QueryParam implements `Context#QueryParam` function.
+func (c *Context) QueryParam(name string) string {
+	return string(c.QueryArgs().Peek(name))
+}
+
+// QueryParams implements `Context#QueryParams` function.
+func (c *Context) QueryParams() (params map[string][]string) {
+	params = make(map[string][]string)
+	c.URI().QueryArgs().VisitAll(func(k, v []byte) {
+		_, ok := params[string(k)]
+		if !ok {
+			params[string(k)] = make([]string, 0)
+		}
+		params[string(k)] = append(params[string(k)], string(v))
+	})
+	return
+}
+
+func (c *Context) QueryString() string {
+	return string(c.URI().QueryString())
+}

@@ -56,8 +56,8 @@ const (
 	TRACE   = "TRACE"
 )
 
-// Methods lists all supported HTTP methods by Macross.
 var (
+	// Methods lists all supported HTTP methods by Macross.
 	methods = [...]string{
 		CONNECT,
 		DELETE,
@@ -69,6 +69,8 @@ var (
 		PUT,
 		TRACE,
 	}
+
+	mutex sync.RWMutex
 )
 
 // MIME types
@@ -382,6 +384,8 @@ func (m *Macross) Pull(key string) interface{} {
 }
 
 func (m *Macross) Push(key string, value interface{}) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	if m.data == nil {
 		m.data = make(map[string]interface{})
 	}

@@ -12,6 +12,8 @@ import (
 	"path"
 	"path/filepath"
 	"time"
+
+	ktx "context"
 )
 
 type (
@@ -21,6 +23,7 @@ type (
 
 	// Context represents the contextual data and environment while processing an incoming HTTP request.
 	Context struct {
+		Ktx ktx.Context // standard context
 		*fasthttp.RequestCtx
 		Serialize SerializeFunc // the function serializing the given data of arbitrary type into a byte array.
 		macross   *Macross
@@ -44,6 +47,27 @@ func (c *Context) init(ctx *fasthttp.RequestCtx) {
 	c.Serialize = Serialize
 }
 
+// Macross returns the Macross that is handling the incoming HTTP request.
+func (c *Context) Macross() *Macross {
+	return c.macross
+}
+
+func (c *Context) Kontext() ktx.Context {
+	return c.Ktx
+}
+
+func (c *Context) SetKontext(ktx ktx.Context) {
+	c.Ktx = ktx
+}
+
+func (c *Context) Handler() Handler {
+	return c.handlers[c.index]
+}
+
+func (c *Context) SetHandler(h Handler) {
+	c.handlers[c.index] = h
+}
+
 // Serialize converts the given data into a byte array.
 // If the data is neither a byte array nor a string, it will call fmt.Sprint to convert it into a string.
 func Serialize(data interface{}) (bytes []byte, err error) {
@@ -60,65 +84,8 @@ func Serialize(data interface{}) (bytes []byte, err error) {
 	return nil, nil
 }
 
-// Macross returns the Macross that is handling the incoming HTTP request.
-func (c *Context) Macross() *Macross {
-	return c.macross
-}
-
 func (c *Context) Bind(i interface{}) error {
 	return c.macross.binder.Bind(i, c)
-}
-
-// Param returns the named parameter value that is found in the URL path matching the current route.
-// If the named parameter cannot be found, an empty string will be returned.
-func (c *Context) Param(name string) *Args {
-	var a = new(Args)
-	for i, n := range c.pnames {
-		if n == name {
-			a.s = c.pvalues[i]
-		}
-	}
-	return a
-}
-
-func (c *Context) Args(key ...string) *Args {
-	var a = new(Args)
-	var k string
-	if len(key) > 0 {
-		k = key[0]
-		a.s = string(c.FormValue(k))
-	}
-	return a
-}
-
-func (c *Context) Parameter(i int) (value string) {
-	l := len(c.pnames)
-	if i < l {
-		value = c.pvalues[i]
-	}
-	return
-}
-
-// QueryParam implements `Context#QueryParam` function.
-func (c *Context) QueryParam(name string) string {
-	return string(c.QueryArgs().Peek(name))
-}
-
-// QueryParams implements `Context#QueryParams` function.
-func (c *Context) QueryParams() (params map[string][]string) {
-	params = make(map[string][]string)
-	c.URI().QueryArgs().VisitAll(func(k, v []byte) {
-		_, ok := params[string(k)]
-		if !ok {
-			params[string(k)] = make([]string, 0)
-		}
-		params[string(k)] = append(params[string(k)], string(v))
-	})
-	return
-}
-
-func (c *Context) QueryString() string {
-	return string(c.URI().QueryString())
 }
 
 func (c *Context) RequestBody() io.Reader {
