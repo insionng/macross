@@ -97,7 +97,12 @@ func (c *Context) Args(key ...string) *Args {
 	var k string
 	if len(key) > 0 {
 		k = key[0]
-		if a.s = c.QueryParam(k); len(a.s) == 0 {
+		for i, n := range c.pnames {
+			if n == k {
+				a.s = c.pvalues[i]
+			}
+		}
+		if len(a.s) == 0 {
 			a.s = c.FormValue(k)
 		}
 	}
