@@ -9,15 +9,15 @@ import (
 
 func (m *Macross) Listen(args ...interface{}) {
 	addr := GetAddress(args...)
-	fasthttp.ListenAndServe(addr, m.HandleRequest)
+	fasthttp.ListenAndServe(addr, m.ServeHTTP)
 }
 
 func (m *Macross) ListenTLS(certFile, keyFile string, args ...interface{}) {
 	addr := GetAddress(args...)
-	fasthttp.ListenAndServeTLS(addr, certFile, keyFile, m.HandleRequest)
+	fasthttp.ListenAndServeTLS(addr, certFile, keyFile, m.ServeHTTP)
 }
 
 func (m *Macross) ListenTLSEmbed(certData, keyData []byte, args ...interface{}) {
 	addr := GetAddress(args...)
-	fasthttp.ListenAndServeTLSEmbed(addr, certData, keyData, m.HandleRequest)
+	fasthttp.ListenAndServeTLSEmbed(addr, certData, keyData, m.ServeHTTP)
 }

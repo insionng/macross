@@ -26,6 +26,7 @@ type (
 		*fasthttp.RequestCtx
 		ktx       ktx.Context   // standard context
 		Serialize SerializeFunc // the function serializing the given data of arbitrary type into a byte array.
+		Session   Sessioner
 		macross   *Macross
 		pnames    []string               // list of route parameter names
 		pvalues   []string               // list of parameter values corresponding to pnames

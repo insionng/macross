@@ -13,7 +13,7 @@ import (
 //
 // Based on valyala/fasthttp implementation.
 // Available here: https://github.com/valyala/fasthttp/blob/master/fasthttpadaptor/adaptor.go
-func WrapHttpHandler(h http.Handler) Handler {
+func WrapHttpHandler(handler http.Handler) Handler {
 	return func(c *Context) error {
 		var r http.Request
 		ctx := c.RequestCtx
@@ -42,7 +42,7 @@ func WrapHttpHandler(h http.Handler) Handler {
 		r.URL = rURL
 
 		var w netHTTPResponseWriter
-		h.ServeHTTP(&w, &r)
+		handler.ServeHTTP(&w, &r)
 
 		ctx.SetStatusCode(w.StatusCode())
 		for k, vv := range w.Header() {
@@ -107,12 +107,34 @@ func (w *netHTTPResponseWriter) Write(p []byte) (int, error) {
 }
 
 // WrapHandler wraps `fasthttp.RequestHandler` into `macross.Handler`.
-func WrapFastHandler(h fasthttp.RequestHandler) Handler {
+func WrapFastHandler(handler fasthttp.RequestHandler) Handler {
 	return func(c *Context) error {
 		ctx := c.RequestCtx
-		h(ctx)
+		handler(ctx)
 		c.Response.SetStatusCode(ctx.Response.StatusCode())
 		c.Response.Header.SetContentLength(ctx.Response.Header.ContentLength())
 		return nil
+	}
+}
+
+func WrapHandler(handler Handler) Handler {
+	return WrapBefore(handler)
+}
+
+func WrapBefore(handler Handler) Handler {
+	return func(self *Context) error {
+		if err := handler(self); err != nil {
+			return err
+		}
+		return self.Next()
+	}
+}
+
+func WrapAfter(handler Handler) Handler {
+	return func(self *Context) error {
+		if err := self.Next(); err != nil {
+			return err
+		}
+		return handler(self)
 	}
 }

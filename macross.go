@@ -27,6 +27,7 @@ type (
 		data             map[string]interface{} // data items managed by Key , Value
 		maxParams        int
 		binder           Binder
+		sessioner        Sessioner
 		notFound         []Handler
 		notFoundHandlers []Handler
 		renderer         Renderer
@@ -300,8 +301,29 @@ func New() *Macross {
 	return m
 }
 
-// HandleRequest handles the HTTP request.
-func (r *Macross) HandleRequest(ctx *fasthttp.RequestCtx) {
+// New creates a new Classic Macross object.
+func Classic() *Macross {
+	m := &Macross{
+		routes: make(map[string]*Route),
+		stores: make(map[string]routeStore),
+	}
+	m.RouteGroup = *newRouteGroup("", m, make([]Handler, 0))
+	m.NotFound(MethodNotAllowedHandler, NotFoundHandler)
+	m.SetBinder(&binder{})
+	m.SetSessioner(&sessioner{})
+	m.pool.New = func() interface{} {
+		return &Context{
+			ktx:     ktx.Background(),
+			Session: m.sessioner,
+			pvalues: make([]string, m.maxParams),
+			macross: m,
+		}
+	}
+	return m
+}
+
+// ServeHTTP handles the HTTP request.
+func (r *Macross) ServeHTTP(ctx *fasthttp.RequestCtx) {
 	c := r.pool.Get().(*Context)
 	c.Reset(ctx)
 	c.handlers, c.pnames = r.find(string(ctx.Method()), string(ctx.Path()), c.pvalues)
@@ -403,6 +425,16 @@ func (m *Macross) SetBinder(b Binder) {
 // Binder returns the binder instance.
 func (m *Macross) Binder() Binder {
 	return m.binder
+}
+
+// SetSessioner registers a custom sessioner. It's invoked by `Context#Bind()`.
+func (m *Macross) SetSessioner(s Sessioner) {
+	m.sessioner = s
+}
+
+// Sessioner returns the sessioner instance.
+func (m *Macross) Sessioner() Sessioner {
+	return m.sessioner
 }
 
 // SetRenderer registers an HTML template renderer. It's invoked by `Context#Render()`.

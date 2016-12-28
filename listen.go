@@ -19,11 +19,11 @@ func (m *Macross) Listen(args ...interface{}) {
 			log.Fatalf("error in reuseport.Listen: %s", err)
 		}
 
-		if err = fasthttp.Serve(ln, m.HandleRequest); err != nil {
+		if err = fasthttp.Serve(ln, m.ServeHTTP); err != nil {
 			log.Fatalf("error in fasthttp.Serve: %s", err)
 		}
 	} else {
-		fasthttp.ListenAndServe(addr, m.HandleRequest)
+		fasthttp.ListenAndServe(addr, m.ServeHTTP)
 	}
 }
 
@@ -36,12 +36,12 @@ func (m *Macross) ListenTLS(certFile, keyFile string, args ...interface{}) {
 			log.Fatalf("error in reuseport.Listen: %s", err)
 		}
 
-		if err = fasthttp.ServeTLS(ln, certFile, keyFile, m.HandleRequest); err != nil {
+		if err = fasthttp.ServeTLS(ln, certFile, keyFile, m.ServeHTTP); err != nil {
 			log.Fatalf("error in fasthttp.ServeTLS: %s", err)
 		}
 
 	} else {
-		fasthttp.ListenAndServeTLS(addr, certFile, keyFile, m.HandleRequest)
+		fasthttp.ListenAndServeTLS(addr, certFile, keyFile, m.ServeHTTP)
 	}
 }
 
@@ -54,11 +54,11 @@ func (m *Macross) ListenTLSEmbed(certData, keyData []byte, args ...interface{}) 
 			log.Fatalf("error in reuseport.Listen: %s", err)
 		}
 
-		if err = fasthttp.ServeTLSEmbed(ln, certData, keyData, m.HandleRequest); err != nil {
+		if err = fasthttp.ServeTLSEmbed(ln, certData, keyData, m.ServeHTTP); err != nil {
 			log.Fatalf("error in fasthttp.ServeTLSEmbed: %s", err)
 		}
 
 	} else {
-		fasthttp.ListenAndServeTLSEmbed(addr, certData, keyData, m.HandleRequest)
+		fasthttp.ListenAndServeTLSEmbed(addr, certData, keyData, m.ServeHTTP)
 	}
 }
