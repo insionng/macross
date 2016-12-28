@@ -14,27 +14,27 @@ type (
 	sessioner struct{}
 )
 
-// Set value to memory session
+// Set value to session
 func (s *sessioner) Set(key, value interface{}) error {
 	return nil
 }
 
-// Get value from memory session by key
+// Get value from session by key
 func (s *sessioner) Get(key interface{}) interface{} {
 	return nil
 }
 
-// Delete in memory session by key
+// Delete in session by key
 func (s *sessioner) Delete(key interface{}) error {
 	return nil
 }
 
-// Flush clear all values in memory session
+// Flush clear all values in session
 func (s *sessioner) Flush() error {
 	return nil
 }
 
-// SessionID get this id of memory session store
+// SessionID get this id of session store
 func (s *sessioner) SessionID() string {
 	return ""
 }
