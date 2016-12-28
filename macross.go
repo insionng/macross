@@ -2,7 +2,9 @@
 package macross
 
 import (
+	ktx "context"
 	"github.com/valyala/fasthttp"
+
 	"io"
 	"os"
 	"path"
@@ -290,6 +292,7 @@ func New() *Macross {
 	m.SetBinder(&binder{})
 	m.pool.New = func() interface{} {
 		return &Context{
+			Ktx:     ktx.Background(),
 			pvalues: make([]string, m.maxParams),
 			macross: m,
 		}
@@ -300,7 +303,7 @@ func New() *Macross {
 // HandleRequest handles the HTTP request.
 func (r *Macross) HandleRequest(ctx *fasthttp.RequestCtx) {
 	c := r.pool.Get().(*Context)
-	c.init(ctx)
+	c.Reset(ctx)
 	c.handlers, c.pnames = r.find(string(ctx.Method()), string(ctx.Path()), c.pvalues)
 	if err := c.Next(); err != nil {
 		r.HandleError(c, err)

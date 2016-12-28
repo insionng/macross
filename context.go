@@ -39,8 +39,9 @@ const (
 	indexPage = "index.html"
 )
 
-// init sets the request and response of the context and resets all other properties.
-func (c *Context) init(ctx *fasthttp.RequestCtx) {
+// Reset sets the request and response of the context and resets all other properties.
+func (c *Context) Reset(ctx *fasthttp.RequestCtx) {
+	c.Ktx = ktx.Background()
 	c.RequestCtx = ctx
 	c.data = nil
 	c.index = -1
