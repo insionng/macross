@@ -3,12 +3,12 @@ package macross
 type (
 	// Sessioner is the interface that wraps the Session.
 	Sessioner interface {
-		Set(key, value interface{}) error //set session value
-		Get(key interface{}) interface{}  //get session value
-		Delete(key interface{}) error     //delete session value
-		SessionID() string                //back current sessionID
+		Set(key, value interface{}) error // set session value
+		Get(key interface{}) interface{}  // get session value
+		Delete(key interface{}) error     // delete session value
+		Clean() error                     // delete all data
+		SessionID() string                // back current sessionID
 		SessionRelease(ctx *Context)      // release the resource & save data to provider & return the data
-		Flush() error                     //delete all data
 	}
 
 	sessioner struct{}
@@ -29,8 +29,8 @@ func (s *sessioner) Delete(key interface{}) error {
 	return nil
 }
 
-// Flush clear all values in session
-func (s *sessioner) Flush() error {
+// Clean clear all values in session
+func (s *sessioner) Clean() error {
 	return nil
 }
 
