@@ -11,5 +11,5 @@ func TestCSRF(t *testing.T) {
 	e.Use(csrf.CSRFWithConfig(csrf.CSRFConfig{
 		TokenLookup: "header:X-XSRF-TOKEN",
 	}))
-	go e.Run(":9000")
+	go e.Listen(9000)
 }

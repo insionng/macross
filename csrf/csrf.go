@@ -3,12 +3,12 @@ package csrf
 import (
 	"crypto/subtle"
 	"errors"
+	"strings"
+	"time"
+
 	"github.com/insionng/macross"
 	"github.com/insionng/macross/libraries/gommon/random"
 	"github.com/insionng/macross/skipper"
-	"net/http"
-	"strings"
-	// "time"
 )
 
 type (
@@ -36,27 +36,27 @@ type (
 
 		// Name of the CSRF cookie. This cookie will store CSRF token.
 		// Optional. Default value "csrf".
-		// CookieName string `json:"cookie_name"`
+		CookieName string `json:"cookie_name"`
 
 		// Domain of the CSRF cookie.
 		// Optional. Default value none.
-		// CookieDomain string `json:"cookie_domain"`
+		CookieDomain string `json:"cookie_domain"`
 
 		// Path of the CSRF cookie.
 		// Optional. Default value none.
-		// CookiePath string `json:"cookie_path"`
+		CookiePath string `json:"cookie_path"`
 
 		// Max age (in seconds) of the CSRF cookie.
 		// Optional. Default value 86400 (24hr).
-		// CookieMaxAge int `json:"cookie_max_age"`
+		CookieMaxAge int `json:"cookie_max_age"`
 
 		// Indicates if CSRF cookie is secure.
 		// Optional. Default value false.
-		// CookieSecure bool `json:"cookie_secure"`
+		CookieSecure bool `json:"cookie_secure"`
 
 		// Indicates if CSRF cookie is HTTP only.
 		// Optional. Default value false.
-		// CookieHTTPOnly bool `json:"cookie_http_only"`
+		CookieHTTPOnly bool `json:"cookie_http_only"`
 	}
 
 	// csrfTokenExtractor defines a function that takes `macross.Context` and returns
@@ -67,12 +67,12 @@ type (
 var (
 	// DefaultCSRFConfig is the default CSRF middleware config.
 	DefaultCSRFConfig = CSRFConfig{
-		Skipper:     skipper.DefaultSkipper,
-		TokenLength: 32,
-		TokenLookup: "header:" + macross.HeaderXCSRFToken,
-		ContextKey:  "csrf",
-		// CookieName:   "_csrf",
-		// CookieMaxAge: 86400,
+		Skipper:      skipper.DefaultSkipper,
+		TokenLength:  32,
+		TokenLookup:  "header:" + macross.HeaderXCSRFToken,
+		ContextKey:   "csrf",
+		CookieName:   "_csrf",
+		CookieMaxAge: 86400,
 	}
 )
 
@@ -99,13 +99,12 @@ func CSRFWithConfig(config CSRFConfig) macross.Handler {
 	if config.ContextKey == "" {
 		config.ContextKey = DefaultCSRFConfig.ContextKey
 	}
-
-	// if config.CookieName == "" {
-	// config.CookieName = DefaultCSRFConfig.CookieName
-	// }
-	// if config.CookieMaxAge == 0 {
-	// config.CookieMaxAge = DefaultCSRFConfig.CookieMaxAge
-	// }
+	if config.CookieName == "" {
+		config.CookieName = DefaultCSRFConfig.CookieName
+	}
+	if config.CookieMaxAge == 0 {
+		config.CookieMaxAge = DefaultCSRFConfig.CookieMaxAge
+	}
 
 	// Initialize
 	parts := strings.Split(config.TokenLookup, ":")
@@ -122,19 +121,18 @@ func CSRFWithConfig(config CSRFConfig) macross.Handler {
 			return c.Next()
 		}
 
-		req := c.Request
-		// k, err := c.Cookie(config.CookieName)
-		// token := ""
+		k, err := c.Cookie(config.CookieName)
+		token := ""
 
-		// if err != nil {
-		// Generate token
-		token := random.String(config.TokenLength)
-		// } else {
-		// Reuse token
-		// token = k.Value()
-		// }
+		if err != nil {
+			// Generate token
+			token = random.String(config.TokenLength)
+		} else {
+			// Reuse token
+			token = k.Value()
+		}
 
-		switch string(req.Header.Method()) {
+		switch string(c.Request.Header.Method()) {
 		case macross.GET, macross.HEAD, macross.OPTIONS, macross.TRACE:
 		default:
 			// Validate token only for requests which are not defined as 'safe' by RFC7231
@@ -143,33 +141,30 @@ func CSRFWithConfig(config CSRFConfig) macross.Handler {
 				return err
 			}
 			if !validateCSRFToken(token, clientToken) {
-				return macross.NewHTTPError(http.StatusForbidden, "csrf token is invalid")
+				return macross.NewHTTPError(macross.StatusForbidden, "csrf token is invalid")
 			}
 		}
 
 		// Set CSRF cookie
-		/*
-			cookie := new(macross.Cookie)
-			cookie.SetName(config.CookieName)
-			cookie.SetValue(token)
-			if config.CookiePath != "" {
-				cookie.SetPath(config.CookiePath)
-			}
-			if config.CookieDomain != "" {
-				cookie.SetDomain(config.CookieDomain)
-			}
-			cookie.SetExpires(time.Now().Add(time.Duration(config.CookieMaxAge) * time.Second))
-			cookie.SetSecure(config.CookieSecure)
-			cookie.SetHTTPOnly(config.CookieHTTPOnly)
-			c.SetCookie(cookie)
-		*/
+		cookie := new(macross.Cookie)
+		cookie.SetName(config.CookieName)
+		cookie.SetValue(token)
+		if config.CookiePath != "" {
+			cookie.SetPath(config.CookiePath)
+		}
+		if config.CookieDomain != "" {
+			cookie.SetDomain(config.CookieDomain)
+		}
+		cookie.SetExpire(time.Now().Add(time.Duration(config.CookieMaxAge) * time.Second))
+		cookie.SetSecure(config.CookieSecure)
+		cookie.SetHTTPOnly(config.CookieHTTPOnly)
+		c.SetCookie(cookie)
 
 		// Store token in the context
 		c.Set(config.ContextKey, token)
 
 		// Protect clients from caching the response
 		c.Response.Header.Add(macross.HeaderVary, macross.HeaderCookie)
-
 		return c.Next()
 	}
 }
@@ -178,7 +173,7 @@ func CSRFWithConfig(config CSRFConfig) macross.Handler {
 // provided request header.
 func csrfTokenFromHeader(header string) csrfTokenExtractor {
 	return func(c *macross.Context) (string, error) {
-		return string(c.Request.Header.Peek(header)), nil
+		return c.RequestHeader(header), nil
 	}
 }
 
@@ -186,7 +181,7 @@ func csrfTokenFromHeader(header string) csrfTokenExtractor {
 // provided form parameter.
 func csrfTokenFromForm(param string) csrfTokenExtractor {
 	return func(c *macross.Context) (string, error) {
-		token := string(c.FormValue(param))
+		token := c.FormValue(param)
 		if token == "" {
 			return "", errors.New("empty csrf token in form param")
 		}
@@ -198,7 +193,7 @@ func csrfTokenFromForm(param string) csrfTokenExtractor {
 // provided query parameter.
 func csrfTokenFromQuery(param string) csrfTokenExtractor {
 	return func(c *macross.Context) (string, error) {
-		token := string(c.QueryArgs().Peek(param))
+		token := c.QueryParam(param)
 		if token == "" {
 			return "", errors.New("empty csrf token in query param")
 		}
