@@ -40,7 +40,8 @@ type (
 	sessioner struct{}
 
 	Flash struct {
-		Ctx *Context
+		FlashNow bool
+		Ctx      *Context
 		url.Values
 		ErrorMsg, WarningMsg, InfoMsg, SuccessMsg string
 	}
@@ -88,8 +89,7 @@ func (s *sessioner) GC() {}
 
 func (f *Flash) set(name, msg string, current ...bool) {
 	isShow := false
-	if (len(current) == 0 && FlashNow) ||
-		(len(current) > 0 && current[0]) {
+	if (len(current) == 0 && FlashNow) || (len(current) > 0 && current[0]) {
 		isShow = true
 	}
 
