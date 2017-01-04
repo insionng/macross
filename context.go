@@ -27,6 +27,7 @@ type (
 		ktx       ktx.Context   // standard context
 		Serialize SerializeFunc // the function serializing the given data of arbitrary type into a byte array.
 		Session   Sessioner
+		Flash     *Flash
 		macross   *Macross
 		pnames    []string               // list of route parameter names
 		pvalues   []string               // list of parameter values corresponding to pnames
@@ -68,6 +69,24 @@ func (c *Context) Handler() Handler {
 
 func (c *Context) SetHandler(h Handler) {
 	c.handlers[c.index] = h
+}
+
+func (c *Context) WrapBeforeHandler(handler Handler) Handler {
+	return func(self *Context) error {
+		if err := handler(c); err != nil {
+			return err
+		}
+		return self.Next()
+	}
+}
+
+func (c *Context) WrapAfterHandler(handler Handler) Handler {
+	return func(self *Context) error {
+		if err := self.Next(); err != nil {
+			return err
+		}
+		return handler(c)
+	}
 }
 
 // Serialize converts the given data into a byte array.
@@ -173,6 +192,7 @@ func (c *Context) Data(data interface{}) (err error) {
 	var bytes []byte
 	if bytes, err = c.Serialize(data); err == nil {
 		_, err = c.Write(bytes)
+		c.Abort()
 	}
 	return
 }
@@ -187,6 +207,20 @@ func (c *Context) JSON(i interface{}, status ...int) (err error) {
 	b, err := json.Marshal(i)
 	if err != nil {
 		return err
+	}
+	return c.JSONBlob(b, code)
+}
+
+func (c *Context) JSONPretty(i interface{}, indent string, status ...int) (err error) {
+	var code int
+	if len(status) > 0 {
+		code = status[0]
+	} else {
+		code = StatusOK
+	}
+	b, err := json.MarshalIndent(i, "", indent)
+	if err != nil {
+		return
 	}
 	return c.JSONBlob(b, code)
 }
@@ -231,6 +265,7 @@ func (c *Context) JSONPBlob(callback string, b []byte, status ...int) (err error
 		return
 	}
 	_, err = c.Write([]byte(");"))
+	c.Abort()
 	return
 }
 
@@ -251,6 +286,7 @@ func (c *Context) Render(name string, status ...int) (err error) {
 	c.Response.Header.Set(HeaderContentType, MIMETextHTMLCharsetUTF8)
 	c.Response.Header.SetStatusCode(code)
 	_, err = c.Write(buf.Bytes())
+	c.Abort()
 	return
 }
 
@@ -264,6 +300,7 @@ func (c *Context) HTML(html string, status ...int) (err error) {
 	c.Response.Header.Set(HeaderContentType, MIMETextHTMLCharsetUTF8)
 	c.Response.Header.SetStatusCode(code)
 	_, err = c.Write([]byte(html))
+	c.Abort()
 	return
 }
 
@@ -277,6 +314,7 @@ func (c *Context) String(s string, status ...int) (err error) {
 	c.Response.Header.Set(HeaderContentType, MIMETextPlainCharsetUTF8)
 	c.Response.Header.SetStatusCode(code)
 	_, err = c.Write([]byte(s))
+	c.Abort()
 	return
 }
 
@@ -287,10 +325,23 @@ func (c *Context) XML(i interface{}, status ...int) (err error) {
 	} else {
 		code = StatusOK
 	}
-
 	b, err := xml.Marshal(i)
 	if err != nil {
 		return err
+	}
+	return c.XMLBlob(b, code)
+}
+
+func (c *Context) XMLPretty(i interface{}, indent string, status ...int) (err error) {
+	var code int
+	if len(status) > 0 {
+		code = status[0]
+	} else {
+		code = StatusOK
+	}
+	b, err := xml.MarshalIndent(i, "", indent)
+	if err != nil {
+		return
 	}
 	return c.XMLBlob(b, code)
 }
@@ -308,6 +359,7 @@ func (c *Context) XMLBlob(b []byte, status ...int) (err error) {
 		return
 	}
 	_, err = c.Write(b)
+	c.Abort()
 	return
 }
 
@@ -322,6 +374,7 @@ func (c *Context) Blob(contentType string, b []byte, status ...int) (err error) 
 	c.Response.Header.Set(HeaderContentType, contentType)
 	c.Response.Header.SetStatusCode(code)
 	_, err = c.Write(b)
+	c.Abort()
 	return
 }
 

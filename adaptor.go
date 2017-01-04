@@ -116,25 +116,3 @@ func WrapFastHandler(handler fasthttp.RequestHandler) Handler {
 		return nil
 	}
 }
-
-func WrapHandler(handler Handler) Handler {
-	return WrapBefore(handler)
-}
-
-func WrapBefore(handler Handler) Handler {
-	return func(self *Context) error {
-		if err := handler(self); err != nil {
-			return err
-		}
-		return self.Next()
-	}
-}
-
-func WrapAfter(handler Handler) Handler {
-	return func(self *Context) error {
-		if err := self.Next(); err != nil {
-			return err
-		}
-		return handler(self)
-	}
-}

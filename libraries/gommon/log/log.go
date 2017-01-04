@@ -16,7 +16,7 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/valyala/fasttemplate"
 
-	"github.com/insionng/vodka/libraries/gommon/color"
+	"github.com/insionng/macross/libraries/gommon/color"
 )
 
 type (
@@ -387,9 +387,9 @@ func (l *Logger) log(v Lvl, format string, args ...interface{}) {
 				if format == "json" {
 					buf.WriteString(message[1:])
 				} else {
-					buf.WriteString(`"message":"`)
-					buf.WriteString(message)
-					buf.WriteString(`"}`)
+					buf.WriteString(`"message":`)
+					buf.WriteString(strconv.Quote(message))
+					buf.WriteString(`}`)
 				}
 			} else {
 				// Text header

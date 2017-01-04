@@ -3,8 +3,6 @@ package macross
 
 import (
 	ktx "context"
-	"github.com/valyala/fasthttp"
-
 	"io"
 	"os"
 	"path"
@@ -12,6 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/valyala/fasthttp"
+	"gopkg.in/ini.v1"
 )
 
 type (
@@ -73,7 +74,11 @@ var (
 		TRACE,
 	}
 
-	mutex sync.RWMutex
+	// Flash applies to current request.
+	FlashNow bool
+
+	// Configuration convention object.
+	cfg *ini.File
 )
 
 // MIME types
@@ -322,16 +327,33 @@ func Classic() *Macross {
 	return m
 }
 
-// ServeHTTP handles the HTTP request.
-func (r *Macross) ServeHTTP(ctx *fasthttp.RequestCtx) {
-	c := r.pool.Get().(*Context)
-	c.Reset(ctx)
-	c.handlers, c.pnames = r.find(string(ctx.Method()), string(ctx.Path()), c.pvalues)
-	if err := c.Next(); err != nil {
-		r.HandleError(c, err)
+// AcquireContext returns an empty `Context` instance from the pool.
+// You must return the context by calling `ReleaseContext()`.
+func (m *Macross) AcquireContext() *Context {
+	if ctx, okay := m.pool.Get().(*Context); okay {
+		return ctx
+	} else {
+		panic("Not Standard Macross Context")
+		return nil
 	}
+}
+
+// ReleaseContext returns the `Context` instance back to the pool.
+// You must call it after `AcquireContext()`.
+func (m *Macross) ReleaseContext(c *Context) {
 	c.Response.Header.SetServer("Macross")
-	r.pool.Put(c)
+	m.pool.Put(c)
+}
+
+// ServeHTTP handles the HTTP request.
+func (m *Macross) ServeHTTP(ctx *fasthttp.RequestCtx) {
+	c := m.AcquireContext()
+	c.Reset(ctx)
+	c.handlers, c.pnames = m.find(string(ctx.Method()), string(ctx.Path()), c.pvalues)
+	if err := c.Next(); err != nil {
+		m.HandleError(c, err)
+	}
+	m.ReleaseContext(c)
 }
 
 // Route returns the named route.
@@ -409,8 +431,6 @@ func (m *Macross) Pull(key string) interface{} {
 }
 
 func (m *Macross) Push(key string, value interface{}) {
-	mutex.Lock()
-	defer mutex.Unlock()
 	if m.data == nil {
 		m.data = make(map[string]interface{})
 	}
@@ -537,4 +557,19 @@ func GetAddress(args ...interface{}) string {
 	addr := host + ":" + strconv.FormatInt(int64(port), 10)
 	return addr
 
+}
+
+// SetConfig sets data sources for configuration.
+func SetConfig(source interface{}, others ...interface{}) (_ *ini.File, err error) {
+	cfg, err = ini.Load(source, others...)
+	return Config(), err
+}
+
+// Config returns configuration convention object.
+// It returns an empty object if there is no one available.
+func Config() *ini.File {
+	if cfg == nil {
+		return ini.Empty()
+	}
+	return cfg
 }
