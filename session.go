@@ -92,7 +92,7 @@ func (f *Flash) set(name, msg string, current ...bool) {
 	if (len(current) == 0 && FlashNow) || (len(current) > 0 && current[0]) {
 		isShow = true
 	}
-
+	f.FlashNow = isShow
 	if isShow {
 		f.Ctx.Set("Flash", f)
 	} else {
