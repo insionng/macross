@@ -374,7 +374,6 @@ func (c *Context) Blob(contentType string, b []byte, status ...int) (err error) 
 	c.Response.Header.Set(HeaderContentType, contentType)
 	c.Response.Header.SetStatusCode(code)
 	_, err = c.Write(b)
-	c.Abort()
 	return
 }
 
