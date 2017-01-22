@@ -28,7 +28,7 @@ type (
 		ktx       ktx.Context   // standard context
 		Serialize SerializeFunc // the function serializing the given data of arbitrary type into a byte array.
 		Session   Sessioner
-		Locale    Locale
+		Localer   Localer
 		Flash     *Flash
 		macross   *Macross
 		pnames    []string               // list of route parameter names
@@ -38,13 +38,13 @@ type (
 		handlers  []Handler              // the handlers associated with the current route
 	}
 
-	// Locale reprents a localization interface.
-	Locale interface {
+	// Localer reprents a localization interface.
+	Localer interface {
 		Language() string
 		Tr(string, ...interface{}) string
 	}
 
-	locale struct {
+	localer struct {
 		i18n.Locale
 	}
 )
@@ -122,7 +122,7 @@ func (c *Context) Bind(i interface{}) error {
 }
 
 // Language returns language current locale represents.
-func (l *locale) Language() string {
+func (l *localer) Language() string {
 	return l.Lang
 }
 
