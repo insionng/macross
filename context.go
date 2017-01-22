@@ -28,14 +28,14 @@ type (
 		ktx       ktx.Context   // standard context
 		Serialize SerializeFunc // the function serializing the given data of arbitrary type into a byte array.
 		Session   Sessioner
-		Localer   Localer
-		Flash     *Flash
-		macross   *Macross
-		pnames    []string               // list of route parameter names
-		pvalues   []string               // list of parameter values corresponding to pnames
-		data      map[string]interface{} // data items managed by Get , Set , GetStore and SetStore
-		index     int                    // the index of the currently executing handler in handlers
-		handlers  []Handler              // the handlers associated with the current route
+		Localer
+		Flash    *Flash
+		macross  *Macross
+		pnames   []string               // list of route parameter names
+		pvalues  []string               // list of parameter values corresponding to pnames
+		data     map[string]interface{} // data items managed by Get , Set , GetStore and SetStore
+		index    int                    // the index of the currently executing handler in handlers
+		handlers []Handler              // the handlers associated with the current route
 	}
 
 	// Localer reprents a localization interface.
@@ -122,8 +122,13 @@ func (c *Context) Bind(i interface{}) error {
 }
 
 // Language returns language current locale represents.
-func (l *localer) Language() string {
+func (l localer) Language() string {
 	return l.Lang
+}
+
+// Tr translates content to target language.
+func (l localer) Tr(format string, args ...interface{}) string {
+	return l.Tr(format, args...)
 }
 
 func (c *Context) RequestBody() io.Reader {

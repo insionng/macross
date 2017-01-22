@@ -18,8 +18,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/Unknwon/com"
-	"gopkg.in/ini.v1"
+	"github.com/insionng/macross/libraries/com"
+	"github.com/insionng/macross/libraries/ini.v1"
 )
 
 var cmdSync = &Command{
