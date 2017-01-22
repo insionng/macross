@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/macross-contrib/i18n/libraries/i18n"
+	"github.com/insionng/macross/libraries/i18n"
 	"github.com/valyala/fasthttp"
 	"io"
 	"mime"
