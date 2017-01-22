@@ -29,6 +29,7 @@ type (
 		maxParams        int
 		binder           Binder
 		sessioner        Sessioner
+		locale           Locale
 		notFound         []Handler
 		notFoundHandlers []Handler
 		renderer         Renderer
@@ -316,10 +317,12 @@ func Classic() *Macross {
 	m.NotFound(MethodNotAllowedHandler, NotFoundHandler)
 	m.SetBinder(&binder{})
 	m.SetSessioner(&sessioner{})
+	m.SetLocale(&locale{})
 	m.pool.New = func() interface{} {
 		return &Context{
 			ktx:     ktx.Background(),
 			Session: m.sessioner,
+			Locale:  m.locale,
 			pvalues: make([]string, m.maxParams),
 			macross: m,
 		}
@@ -455,6 +458,16 @@ func (m *Macross) SetSessioner(s Sessioner) {
 // Sessioner returns the sessioner instance.
 func (m *Macross) Sessioner() Sessioner {
 	return m.sessioner
+}
+
+// SetLocale registers a custom locale.
+func (m *Macross) SetLocale(l Locale) {
+	m.locale = l
+}
+
+// Locale returns the locale instance.
+func (m *Macross) Locale() Locale {
+	return m.locale
 }
 
 // SetRenderer registers an HTML template renderer. It's invoked by `Context#Render()`.

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/macross-contrib/i18n/libraries/i18n"
 	"github.com/valyala/fasthttp"
 	"io"
 	"mime"
@@ -27,6 +28,7 @@ type (
 		ktx       ktx.Context   // standard context
 		Serialize SerializeFunc // the function serializing the given data of arbitrary type into a byte array.
 		Session   Sessioner
+		Locale    Locale
 		Flash     *Flash
 		macross   *Macross
 		pnames    []string               // list of route parameter names
@@ -34,6 +36,16 @@ type (
 		data      map[string]interface{} // data items managed by Get , Set , GetStore and SetStore
 		index     int                    // the index of the currently executing handler in handlers
 		handlers  []Handler              // the handlers associated with the current route
+	}
+
+	// Locale reprents a localization interface.
+	Locale interface {
+		Language() string
+		Tr(string, ...interface{}) string
+	}
+
+	locale struct {
+		i18n.Locale
 	}
 )
 
@@ -107,6 +119,11 @@ func Serialize(data interface{}) (bytes []byte, err error) {
 
 func (c *Context) Bind(i interface{}) error {
 	return c.macross.binder.Bind(i, c)
+}
+
+// Language returns language current locale represents.
+func (l *locale) Language() string {
+	return l.Lang
 }
 
 func (c *Context) RequestBody() io.Reader {
