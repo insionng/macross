@@ -49,6 +49,10 @@ func (a *Args) String() string {
 	return com.StrTo(a.s).String()
 }
 
+func (a *Args) Bytes() []byte {
+	return []byte(com.StrTo(a.s).String())
+}
+
 func (a *Args) Exist() bool {
 	return com.StrTo(a.s).Exist()
 }
