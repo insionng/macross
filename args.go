@@ -3,6 +3,7 @@ package macross
 import (
 	"github.com/insionng/macross/libraries/com"
 	"strconv"
+	"time"
 )
 
 type (
@@ -51,6 +52,11 @@ func (a *Args) String() string {
 
 func (a *Args) Bytes() []byte {
 	return []byte(com.StrTo(a.s).String())
+}
+
+func (a *Args) Time() time.Time {
+	tme, _ := time.Parse("2006-01-02 03:04:05 PM", com.StrTo(a.s).String())
+	return tme
 }
 
 func (a *Args) Exist() bool {
