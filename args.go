@@ -28,13 +28,16 @@ func (a *Args) MustUint() uint {
 	return uint(com.StrTo(a.s).MustInt64())
 }
 
-func (a *Args) Float32() (f float64, e error) {
-	f, e = strconv.ParseFloat(a.s, 32)
+func (a *Args) Float32() (f float32, e error) {
+	var _f float64
+	_f, e = strconv.ParseFloat(a.s, 32)
+	f = float32(_f)
 	return
 }
 
-func (a *Args) MustFloat32() (f float64) {
-	f, _ = strconv.ParseFloat(a.s, 32)
+func (a *Args) MustFloat32() (f float32) {
+	_f, _ := strconv.ParseFloat(a.s, 32)
+	f = float32(_f)
 	return
 }
 
