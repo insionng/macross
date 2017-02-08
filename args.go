@@ -33,8 +33,18 @@ func (a *Args) Float32() (f float64, e error) {
 	return
 }
 
+func (a *Args) MustFloat32() (f float64) {
+	f, _ = strconv.ParseFloat(a.s, 32)
+	return
+}
+
 func (a *Args) Float64() (f float64, e error) {
 	f, e = strconv.ParseFloat(a.s, 64)
+	return
+}
+
+func (a *Args) MustFloat64() (f float64) {
+	f, _ = strconv.ParseFloat(a.s, 64)
 	return
 }
 
