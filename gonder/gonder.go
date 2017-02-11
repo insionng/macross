@@ -10,35 +10,45 @@ import (
 
 type (
 	Renderer struct {
-		PongorOption
+		Option
 		templates map[string]*template.Template
 		lock      sync.RWMutex
 	}
 
-	PongorOption struct {
+	Option struct {
 		// Directory to load templates. Default is "templates"
 		Directory string
 		// Reload to reload templates everytime.
 		Reload bool
+
+		// Delims
+		DelimLeft  string
+		DelimRight string
 	}
 )
 
-func perparOption(options []PongorOption) PongorOption {
-	var opt PongorOption
+func perparOption(options []Option) Option {
+	var opt Option
 	if len(options) > 0 {
 		opt = options[0]
 	}
 	if len(opt.Directory) == 0 {
 		opt.Directory = "templates"
 	}
+	if len(opt.DelimLeft) == 0 {
+		opt.DelimLeft = "{{"
+	}
+	if len(opt.DelimRight) == 0 {
+		opt.DelimRight = "}}"
+	}
 	return opt
 }
 
-func Renderor(opt ...PongorOption) *Renderer {
+func Renderor(opt ...Option) *Renderer {
 	o := perparOption(opt)
 	r := &Renderer{
-		PongorOption: o,
-		templates:    make(map[string]*template.Template),
+		Option:    o,
+		templates: make(map[string]*template.Template),
 	}
 	return r
 }
@@ -60,8 +70,8 @@ func (r *Renderer) getTemplate(name string) (t *template.Template, err error) {
 		return template.ParseFiles(filepath.Join(r.Directory, name))
 	}
 	r.lock.RLock()
-	var ok bool
-	if t, ok = r.templates[name]; !ok {
+	var okay bool
+	if t, okay = r.templates[name]; !okay {
 		r.lock.RUnlock()
 		t, err = r.buildTemplatesCache(name)
 	} else {
@@ -76,6 +86,7 @@ func (r *Renderer) Render(w io.Writer, name string, c *macross.Context) (err err
 	if err != nil {
 		return err
 	}
+	template.Delims(r.DelimLeft, r.DelimRight)
 	err = template.Execute(w, c.GetStore())
 	return err
 }

@@ -12,7 +12,10 @@ func main() {
 	v := macross.New()
 	v.Use(logger.Logger())
 	v.Use(recover.Recover())
-	v.SetRenderer(gonder.Renderor())
+	v.SetRenderer(gonder.Renderor(gonder.Option{
+		DelimLeft:  "{{",
+		DelimRight: "}}",
+	}))
 	v.Use(static.Static("static"))
 	v.Get("/", func(self *macross.Context) error {
 		var data = make(map[string]interface{})

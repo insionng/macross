@@ -63,7 +63,7 @@ import (
 	"github.com/insionng/macross/libraries/femplate"
 )
 
-type FemplaOption struct {
+type Option struct {
 	// Directory to load templates. Default is "templates"
 	Directory string
 	// Reload to reload templates everytime.
@@ -75,13 +75,13 @@ type FemplaOption struct {
 }
 
 type Renderer struct {
-	FemplaOption
+	Option
 	templates map[string]*femplate.Template
 	lock      sync.RWMutex
 }
 
-func perparOption(options []FemplaOption) FemplaOption {
-	var opt FemplaOption
+func perparOption(options []Option) Option {
+	var opt Option
 	if len(options) > 0 {
 		opt = options[0]
 	}
@@ -97,11 +97,11 @@ func perparOption(options []FemplaOption) FemplaOption {
 	return opt
 }
 
-func Renderor(opt ...FemplaOption) *Renderer {
+func Renderor(opt ...Option) *Renderer {
 	o := perparOption(opt)
 	r := &Renderer{
-		FemplaOption: o,
-		templates:    make(map[string]*femplate.Template),
+		Option:    o,
+		templates: make(map[string]*femplate.Template),
 	}
 	return r
 }
@@ -111,7 +111,7 @@ func (r *Renderer) fromFile(path string) (t *femplate.Template, err error) {
 	if err != nil {
 		return nil, err
 	}
-	t = femplate.New(string(buf), r.FemplaOption.LeftDelim, r.FemplaOption.RightDelim)
+	t = femplate.New(string(buf), r.Option.LeftDelim, r.Option.RightDelim)
 	return t, nil
 }
 

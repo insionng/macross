@@ -25,7 +25,7 @@ import (
 	"github.com/insionng/macross"
 )
 
-type PongorOption struct {
+type Option struct {
 	// Directory to load templates. Default is "templates"
 	Directory string
 	// Reload to reload templates everytime.
@@ -33,13 +33,13 @@ type PongorOption struct {
 }
 
 type Renderer struct {
-	PongorOption
+	Option
 	templates map[string]*pongo2.Template
 	lock      sync.RWMutex
 }
 
-func perparOption(options []PongorOption) PongorOption {
-	var opt PongorOption
+func perparOption(options []Option) Option {
+	var opt Option
 	if len(options) > 0 {
 		opt = options[0]
 	}
@@ -49,11 +49,11 @@ func perparOption(options []PongorOption) PongorOption {
 	return opt
 }
 
-func Renderor(opt ...PongorOption) *Renderer {
+func Renderor(opt ...Option) *Renderer {
 	o := perparOption(opt)
 	r := &Renderer{
-		PongorOption: o,
-		templates:    make(map[string]*pongo2.Template),
+		Option:    o,
+		templates: make(map[string]*pongo2.Template),
 	}
 	return r
 }
