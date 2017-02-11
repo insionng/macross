@@ -63,22 +63,24 @@ import (
 	"github.com/insionng/macross/libraries/femplate"
 )
 
-type Option struct {
-	// Directory to load templates. Default is "templates"
-	Directory string
-	// Reload to reload templates everytime.
-	Reload bool
-	// DelimLeft "{{"
-	DelimLeft string
-	// DelimRight "}}"
-	DelimRight string
-}
+type (
+	Renderer struct {
+		Option
+		templates map[string]*femplate.Template
+		lock      sync.RWMutex
+	}
 
-type Renderer struct {
-	Option
-	templates map[string]*femplate.Template
-	lock      sync.RWMutex
-}
+	Option struct {
+		// Directory to load templates. Default is "templates"
+		Directory string
+		// Reload to reload templates everytime.
+		Reload bool
+		// DelimLeft "{{"
+		DelimLeft string
+		// DelimRight "}}"
+		DelimRight string
+	}
+)
 
 func perparOption(options []Option) Option {
 	var opt Option
