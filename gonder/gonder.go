@@ -20,9 +20,9 @@ type (
 		Directory string
 		// Reload to reload templates everytime.
 		Reload bool
-
-		// Delims
-		DelimLeft  string
+		// DelimLeft "{{"
+		DelimLeft string
+		// DelimRight "}}"
 		DelimRight string
 	}
 )

@@ -68,10 +68,10 @@ type Option struct {
 	Directory string
 	// Reload to reload templates everytime.
 	Reload bool
-	// LeftDelim "{{"
-	LeftDelim string
-	// RightDelim "}}"
-	RightDelim string
+	// DelimLeft "{{"
+	DelimLeft string
+	// DelimRight "}}"
+	DelimRight string
 }
 
 type Renderer struct {
@@ -88,11 +88,11 @@ func perparOption(options []Option) Option {
 	if len(opt.Directory) == 0 {
 		opt.Directory = "templates"
 	}
-	if len(opt.LeftDelim) == 0 {
-		opt.LeftDelim = "{{"
+	if len(opt.DelimLeft) == 0 {
+		opt.DelimLeft = "{{"
 	}
-	if len(opt.RightDelim) == 0 {
-		opt.RightDelim = "}}"
+	if len(opt.DelimRight) == 0 {
+		opt.DelimRight = "}}"
 	}
 	return opt
 }
@@ -111,7 +111,7 @@ func (r *Renderer) fromFile(path string) (t *femplate.Template, err error) {
 	if err != nil {
 		return nil, err
 	}
-	t = femplate.New(string(buf), r.Option.LeftDelim, r.Option.RightDelim)
+	t = femplate.New(string(buf), r.Option.DelimLeft, r.Option.DelimRight)
 	return t, nil
 }
 
