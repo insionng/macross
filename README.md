@@ -1,6 +1,7 @@
 # Macross
 
 The Macross Web Framework By Insion
+If you are using standard http, you may use a similar macross package [makross](https://github.com/insionng/makross) which is adapted from Macross.
 
 ## Requirements
 
