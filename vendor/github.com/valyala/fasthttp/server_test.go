@@ -17,6 +17,23 @@ import (
 	"github.com/valyala/fasthttp/fasthttputil"
 )
 
+func TestRequestCtxString(t *testing.T) {
+	var ctx RequestCtx
+
+	s := ctx.String()
+	expectedS := "#0000000000000000 - 0.0.0.0:0<->0.0.0.0:0 - GET http:///"
+	if s != expectedS {
+		t.Fatalf("unexpected ctx.String: %q. Expecting %q", s, expectedS)
+	}
+
+	ctx.Request.SetRequestURI("https://foobar.com/aaa?bb=c")
+	s = ctx.String()
+	expectedS = "#0000000000000000 - 0.0.0.0:0<->0.0.0.0:0 - GET https://foobar.com/aaa?bb=c"
+	if s != expectedS {
+		t.Fatalf("unexpected ctx.String: %q. Expecting %q", s, expectedS)
+	}
+}
+
 func TestServerErrSmallBuffer(t *testing.T) {
 	logger := &customLogger{}
 	s := &Server{
@@ -1278,7 +1295,7 @@ func TestServerExpect100Continue(t *testing.T) {
 }
 
 func TestCompressHandler(t *testing.T) {
-	expectedBody := "foo/bar/baz"
+	expectedBody := string(createFixedBody(2e4))
 	h := CompressHandler(func(ctx *RequestCtx) {
 		ctx.Write([]byte(expectedBody))
 	})
